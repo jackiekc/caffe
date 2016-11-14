@@ -199,6 +199,7 @@ void Solver<Dtype>::Step(int iters) {
   smoothed_loss_ = 0;
 
   while (iter_ < stop_iter) {
+    net_->set_iter(iter_);
     // zero-init the params
     net_->ClearParamDiffs();
     if (param_.test_interval() && iter_ % param_.test_interval() == 0
@@ -343,6 +344,7 @@ void Solver<Dtype>::Test(const int test_net_id) {
   const shared_ptr<Net<Dtype> >& test_net = test_nets_[test_net_id];
   Dtype loss = 0;
   for (int i = 0; i < param_.test_iter(test_net_id); ++i) {
+    net_->set_iter(i);
     SolverAction::Enum request = GetRequestedAction();
     // Check to see if stoppage of testing/training has been requested.
     while (request != SolverAction::NONE) {

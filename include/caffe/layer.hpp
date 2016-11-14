@@ -19,6 +19,8 @@ namespace boost { class mutex; }
 
 namespace caffe {
 
+template <typename Dtype> class Net;
+
 /**
  * @brief An interface for the units of computation which can be composed into a
  *        Net.
@@ -115,6 +117,24 @@ class Layer {
         << type() << "Layer does not support sharing.";
     is_shared_ = is_shared;
   }
+
+
+
+  inline void SetNet(Net<Dtype> *net) {
+    this->net_ = net;
+  }
+  inline Net<Dtype>* GetNet() {
+    return this->net_;
+  }
+
+  virtual inline bool DoesUseCustomCopyBlobs() const {
+    return false;
+  }
+   
+  virtual inline void CustomCopyBlobs(vector<Blob<float>*> blobs) {
+    LOG(FATAL) << "This layer uses custom blob copying, but has not implemented the CustomCopyBlobs method.";
+  }
+
 
   /**
    * @brief Adjust the shapes of top blobs and internal buffers to accommodate
@@ -428,6 +448,9 @@ class Layer {
   }
 
  private:
+  /** Pointer to parent Net if existant */
+  Net<Dtype>* net_;
+
   /** Whether this layer is actually shared by other nets*/
   bool is_shared_;
 
@@ -453,7 +476,8 @@ inline Dtype Layer<Dtype>::Forward(const vector<Blob<Dtype>*>& bottom,
   // Lock during forward to ensure sequential forward
   Lock();
   Dtype loss = 0;
-  Reshape(bottom, top);
+  if (this->layer_param_.reshape_every_iter())
+    Reshape(bottom, top);
   switch (Caffe::mode()) {
   case Caffe::CPU:
     Forward_cpu(bottom, top);

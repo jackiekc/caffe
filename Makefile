@@ -1,6 +1,6 @@
 PROJECT := caffe
 
-CONFIG_FILE := Makefile.config
+CONFIG_FILE := ./Makefile.config
 # Explicitly check for the config file, otherwise make -k will proceed anyway.
 ifeq ($(wildcard $(CONFIG_FILE)),)
 $(error $(CONFIG_FILE) not found. See $(CONFIG_FILE).example.)
@@ -24,9 +24,11 @@ else
 	OTHER_BUILD_DIR := $(DEBUG_BUILD_DIR)
 endif
 
-# All of the directories containing code.
-SRC_DIRS := $(shell find * -type d -exec bash -c "find {} -maxdepth 1 \
+# All of the directories containing c
+SRC_DIRS := $(shell find * -not -path 'data*' -a -type d -exec bash -c "find {} -maxdepth 1 \
 	\( -name '*.cpp' -o -name '*.proto' \) | grep -q ." \; -print)
+
+$(info ${SRC_DIRS}) 
 
 # The target shared library name
 LIBRARY_NAME := $(PROJECT)
@@ -341,6 +343,8 @@ ifeq ($(ALLOW_LMDB_NOLOCK), 1)
 	COMMON_FLAGS += -DALLOW_LMDB_NOLOCK
 endif
 endif
+# CImg 
+COMMON_FLAGS += -Dcimg_display=0
 
 # CPU-only configuration
 ifeq ($(CPU_ONLY), 1)
